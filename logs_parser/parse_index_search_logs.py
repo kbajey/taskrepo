@@ -3,14 +3,19 @@ import json
 import gzip
 import urllib2
 import random
+import pyramid
 
-search_log = gzip.open("./search_sample_log.gz","r")
-
-es_config = {'es_host':'localhost', 'es_port':'9200', 'es_index':'logs', 'es_type':'search'}
+# get the path of log file to be parsed
+def get_log_file_path():
+    settings = pyramid.threadlocal.get_current_registry().settings
+    logdirectory = settings['LOGDIRECTORY']
+    log_file = "%s/search_sample_log.gz" % logdirectory
+    return log_file
 
 # form elastic search query url using elasticsearch config
-def get_es_url(es_config,query_type):
-    es_url = "http://%s:%s/%s/%s/" % (es_config['es_host'], es_config['es_port'], es_config['es_index'], es_config['es_type'])
+def get_es_url(es_index,es_type,query_type):
+    settings = pyramid.threadlocal.get_current_registry().settings
+    es_url = "http://%s:%s/%s/%s/" % (settings['ES_HOST'], settings['ES_PORT'], settings['ES_SEARCH_INDEX'], settings['ES_SEARCH_INDEX'])
     if query_type:
         es_url += query_type
         return es_url
@@ -18,8 +23,7 @@ def get_es_url(es_config,query_type):
 
 # get the count of matching documents from elasticsearch
 def get_doc_count_from_es(query_string):
-    global es_config
-    es_url = get_es_url(es_config,'_count')
+    es_url = get_es_url('search_index','search','_count')
     if es_url and query_string:
         es_conn = urllib2.urlopen(es_url, query_string)
         es_doc = es_conn.read()
@@ -30,9 +34,8 @@ def get_doc_count_from_es(query_string):
 
 # insert document to elasticsearch
 def insert_doc_to_es(search_doc,doc_id):
-    global es_config
     if doc_id:
-        es_url = get_es_url(es_config,doc_id)
+        es_url = es_url = get_es_url('search_index','search',doc_id)
         if es_url and search_doc:
             req = urllib2.Request(es_url,search_doc)
             resp = urllib2.urlopen(req)
@@ -105,7 +108,6 @@ def get_unique_doc_id_from_user_id(user_id):
     if doc_count is not None:
         doc_count += 1
         doc_id = str(doc_count)+'_'+user_id
-        print doc_count
         return doc_id
     return None
 
@@ -142,22 +144,25 @@ def insert_search_data_in_es(search_doc,user_id):
     else:
         print 'No Document to insert or user_id not found'
 
+if __name__ == "__main__":
 
-for line in search_log:
-    # get the formatted search log data
-    search_data = get_search_data(line)
-    
-    # if we don't have the data or if log type is not seach, skip that line
-    if search_data is None or search_data.get('type') != 'search':
-        continue
-    
-    # get the required information that needs to be inserted into elasticsearch
-    search_info = get_search_info_to_insert(search_data)
-    
-    if search_info:    
-        search_doc = json.dumps(search_info)
+    search_log = gzip.open(get_log_file_path(), "r")
 
-        insert_search_data_in_es(search_doc,search_info['user_id'])
+    for line in search_log:
+        # get the formatted search log data
+        search_data = get_search_data(line)
         
-search_log.close()
+        # if we don't have the data or if log type is not seach, skip that line
+        if search_data is None or search_data.get('type') != 'search':
+            continue
+        
+        # get the required information that needs to be inserted into elasticsearch
+        search_info = get_search_info_to_insert(search_data)
+        
+        if search_info:    
+            search_doc = json.dumps(search_info)
+
+            insert_search_data_in_es(search_doc,search_info['user_id'])
+            
+    search_log.close()
 
