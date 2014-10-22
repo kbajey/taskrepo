@@ -61,7 +61,7 @@ def get_test_response(request):
     Returns the graph data
     '''
     date_data = request.matchdict['date']
-    dt = datetime.datetime.strptime('20141022', '%Y%m%d').strftime('%Y-%m-%d')
+    dt = datetime.datetime.strptime(date_data, '%Y%m%d').strftime('%Y-%m-%d')
     
     first_data = [['DATE', 'Oneill', 'Gander'],['20141018',  220, 360],['20141019',  280,      560],['20141020',  270,       457],
           ['20141021',  285,      356]]
