@@ -21,5 +21,6 @@ def main(global_config, **settings):
     config.add_route('top_customers','top_customers')
     config.add_route('top_users','top_users')
     config.add_route('top_keywords_by_user','top_keywords_by_user')
+    config.add_route('test_response','/{date}/test_response')
     config.scan()
     return config.make_wsgi_app()

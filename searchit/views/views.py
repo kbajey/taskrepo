@@ -1,6 +1,7 @@
 from pyramid.response import Response
 from pyramid.view import view_config
 from searchit.modules import es_aggregation_count_util
+import datetime
 
 @view_config(route_name='hello')
 def hello_world(request):
@@ -53,3 +54,19 @@ def get_top_keywords_searched_by_user(request):
 	user_id = request.GET.get('user_id')
 	result = es_aggregation_count_util.get_aggcount_for_field('user_id', user_id, aggs_field='keyword', aggs_size=10)
 	return result
+    
+@view_config(route_name='test_response', renderer='searchit:templates/test_response.mako')
+def get_test_response(request):
+    '''
+    Returns the graph data
+    '''
+    date_data = request.matchdict['date']
+    dt = datetime.datetime.strptime('20141022', '%Y%m%d').strftime('%Y-%m-%d')
+    
+    first_data = [['DATE', 'Oneill', 'Gander'],['20141018',  220, 360],['20141019',  280,      560],['20141020',  270,       457],
+          ['20141021',  285,      356]]
+    second_data = [['DATE', 'Oneill', 'Gander'],['20141018',  620, 724],['20141019',  580,      621],['20141020',  770,       627],
+          ['20141021',  585,      623]]
+    third_data = [['DATE', 'Oneill', 'Gander'],['20141018',  770, 920],['20141019',  670,      870],['20141020',  746,       930],
+          ['20141021',  645,      643]]
+    return {'date_from': dt, 'data1': first_data, 'data2': second_data, 'data3': third_data}
