@@ -5,7 +5,7 @@ import ConfigParser
 import urllib2
 import requests
 import json
-
+logger = logging.getLogger('searchit')
 def get_app_settings(section):
     '''
     Returns a section from ini file as dictionary
@@ -16,20 +16,21 @@ def get_app_settings(section):
         es_data = dict(config.items(section))
         return es_data
     except:
-        logging.error('Error parsing config file')
+        logger.error('Error parsing config file')
 
 def get_es_url(query_type):
     '''
     Returns elasticsearch url required for running queries
     '''
-    settings = get_app_settings('es_settings')
+    #settings = get_app_settings('es_settings')
+    settings = pyramid.threadlocal.get_current_registry().settings
     if settings:
         es_url = "http://%s:%s/%s/%s/" % (settings['es_host'], settings['es_port'], settings['es_search_index'], settings['es_search_type'])
         if query_type:
             es_url += query_type
             return es_url
     else:
-        logging.warnings('No settings found for elasticsearch')
+        logger.warning('No settings found for elasticsearch')
     return None
 
 def get_doc_count(query_string):

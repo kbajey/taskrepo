@@ -34,6 +34,21 @@ def get_range_aggregation_query_object(from_val, to_val,
     query_object.update(aggs_object)
     return query_object
 
+
+def get_range_aggregation_query_object_for_customer(customer, from_val, to_val,
+        range_field, aggs_field, aggs_size, size=0):
+    '''
+    Returns a query object to perform a range operation,
+    followed by aggregration on aggs_field
+    '''
+    range_object = get_range_object(range_field, from_val, to_val)
+    query_string_object = {"query_string": {"fields":["customer_id"], "query": customer}}
+    bool_object = {"bool":{"must": [query_string_object, range_object]}}
+    aggs_object = get_terms_aggregate(aggs_field,aggs_size)
+    query_object = {"size": size, "query": bool_object}
+    query_object.update(aggs_object)
+    return query_object
+
 def get_field_aggregation_query_object(query_field, query_value,
         aggs_field, aggs_size,size=0):
     '''
