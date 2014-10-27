@@ -196,7 +196,13 @@ def get_search_info_to_insert(search_data):
 
     user_creation_time_date = get_date_string_from_timestamp(user_info['user_creation_time'])
     user_visit_time_date = get_date_string_from_timestamp(user_info['user_visit_time'])
-    user_expiry_time_date = get_date_string_from_timestamp(search_data.get('t'))
+    try:
+        user_expiry_time = search_data.get('t')
+        user_expiry_time_date = get_date_string_from_timestamp(user_expiry_time)
+    except :
+        user_expiry_time = user_info['user_visit_time']
+        user_expiry_time_date = search_data['time'].split(' ', 1)[0]
+        print user_expiry_time_date
 
     if user_info:
         search_info['customer_id'] = customer_id
@@ -207,7 +213,7 @@ def get_search_info_to_insert(search_data):
         search_info['user_visit_time_date'] = user_visit_time_date
         search_info['visit_count'] = user_info['visit_count']
         search_info['ip'] = search_data.get('ip')
-        search_info['user_expiry_time'] = long(search_data.get('t'))
+        search_info['user_expiry_time'] = long(user_expiry_time)
         search_info['user_expiry_time_date'] = user_expiry_time_date
         search_info['keyword'] = keyword
         return search_info

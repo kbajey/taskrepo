@@ -31,11 +31,25 @@
 					var json_table = new google.visualization.Table(document.getElementById('orgchart'));
 	      			var json_data = new google.visualization.DataTable(responsejson, 0.6);
 	      			json_table.draw(json_data, {showRowNumber: true});
+			        google.visualization.events.addListener(json_table, 'select', function() {
+			          var selection = json_table.getSelection();
+			          var row = selection[0].row;
+			          var user_id = json_data.getValue(row, 0);
+			          $.get(
+						'top_keywords_by_user',
+						{'user_id': user_id},
+						function(responsejson1){
+								var json_table1 = new google.visualization.Table(document.getElementById('userchart'));
+	      						var json_data1 = new google.visualization.DataTable(responsejson1, 0.6);
+	      						json_table1.draw(json_data1, {showRowNumber: true});
+						},
+					  "json");
+			        });
 				},
 				"json"
 			);
 	      });
-	  });
+	  });	 
   </script>
 </head>
 <body>
@@ -52,7 +66,7 @@
 </select>
 <input type="submit" value="Search">
 <div id="orgchart"></div>
- 
- 
+<p></p>
+<div id="userchart"></div>
 </body>
 </html>

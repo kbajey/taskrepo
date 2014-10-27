@@ -66,7 +66,7 @@ def get_top_users_by_search_count(request):
     to_date = request.GET.get('to_date')
     customer_id = request.GET.get('customer')
     result = es_aggregation_count_util.get_aggcount_for_date_range_for_customer(customer_id, from_date, to_date, range_field='user_visit_time_date',
-                                                                   aggs_field='user_id',aggs_size=10)
+                                                                   aggs_field='user_id',aggs_size=25)
     description = {"key": ("string", "User Id"),
                    "doc_count": ("number", "Searches"),
                    }
@@ -78,13 +78,20 @@ def get_top_users_by_search_count(request):
 
 @view_config(route_name='top_keywords_by_user', renderer='json')
 def get_top_keywords_searched_by_user(request):
-	'''
+    """
 	Returns top keywords searched by a particular user
-	'''
-	user_id = request.GET.get('user_id')
-	result = es_aggregation_count_util.get_aggcount_for_field('user_id', user_id, aggs_field='keyword', aggs_size=10)
-	return result
-    
+	"""
+    user_id = request.GET.get['user_id']
+    result = es_aggregation_count_util.get_aggcount_for_field('user_id', user_id, aggs_field='keyword', aggs_size=20)
+    description = {"key": ("string", "Keywords for: " + user_id),
+                   "doc_count": ("number", "Searches"),
+                   }
+    data_table = gviz_api.DataTable(description)
+    data_table.LoadData(result)
+    return data_table.ToJSon(columns_order=("key", "doc_count"),
+                                    order_by="doc_count")
+
+
 @view_config(route_name='test_response', renderer='searchit:templates/test_response.mako')
 def get_test_response(request):
     '''
